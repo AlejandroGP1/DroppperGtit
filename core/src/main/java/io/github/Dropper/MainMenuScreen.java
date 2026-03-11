@@ -27,7 +27,7 @@ public class MainMenuScreen implements Screen {
         game.batch.end();
 
         if (Gdx.input.isTouched()) {
-            game.setScreen(new com.badlogic.drop.GameScreen(game));
+            game.setScreen(new io.github.Dropper.GameScreen(game));
             dispose();
         }
     }

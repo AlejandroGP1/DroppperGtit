@@ -1,4 +1,4 @@
-package com.badlogic.drop;
+package io.github.Dropper;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
@@ -31,6 +31,8 @@ public class GameScreen implements Screen {
     Rectangle bucketRectangle;
     Rectangle dropRectangle;
     int dropsGathered;
+    int lives = 3;
+    boolean gameOver = false;
 
     public GameScreen(final Drop game) {
         this.game = game;
@@ -72,6 +74,9 @@ public class GameScreen implements Screen {
     }
 
     private void input() {
+
+        if(gameOver) return;
+
         float speed = 4f;
         float delta = Gdx.graphics.getDeltaTime();
 
@@ -99,6 +104,8 @@ public class GameScreen implements Screen {
         bucketSprite.setX(MathUtils.clamp(bucketSprite.getX(), 0, worldWidth - bucketWidth));
         bucketRectangle.set(bucketSprite.getX(), bucketSprite.getY(), bucketWidth, bucketHeight);
 
+
+
         for (int i = dropSprites.size - 1; i >= 0; i--) {
             Sprite dropSprite = dropSprites.get(i);
             float dropWidth = dropSprite.getWidth();
@@ -107,18 +114,28 @@ public class GameScreen implements Screen {
             dropSprite.translateY(-2f * delta);
             dropRectangle.set(dropSprite.getX(), dropSprite.getY(), dropWidth, dropHeight);
 
-            if (dropSprite.getY() < -dropHeight) dropSprites.removeIndex(i);
+            if (dropSprite.getY() < -dropHeight) {
+                dropSprites.removeIndex(i);
+                lives--;
+
+                if(lives <= 0){
+                    gameOver = true;
+                }
+            }
             else if (bucketRectangle.overlaps(dropRectangle)) {
                 dropsGathered++;
                 dropSprites.removeIndex(i);
                 dropSound.play();
             }
+
         }
 
-        dropTimer += delta;
-        if (dropTimer > 1f) {
-            dropTimer = 0;
-            createDroplet();
+        if(!gameOver){
+            dropTimer += delta;
+            if (dropTimer > 1f) {
+                dropTimer = 0;
+                createDroplet();
+            }
         }
     }
 
@@ -128,6 +145,8 @@ public class GameScreen implements Screen {
         game.batch.setProjectionMatrix(game.viewport.getCamera().combined);
         game.batch.begin();
 
+
+
         float worldWidth = game.viewport.getWorldWidth();
         float worldHeight = game.viewport.getWorldHeight();
 
@@ -135,11 +154,15 @@ public class GameScreen implements Screen {
         bucketSprite.draw(game.batch);
 
         game.font.draw(game.batch, "Drops collected: " + dropsGathered, 0, worldHeight);
+        game.font.draw(game.batch, "Lives: " + lives, worldWidth - 3, worldHeight);
+
 
         for (Sprite dropSprite : dropSprites) {
             dropSprite.draw(game.batch);
         }
-
+        if(gameOver){
+            game.font.draw(game.batch, "GAME OVER", worldWidth/2 - 2, worldHeight/2);
+        }
         game.batch.end();
     }
 
